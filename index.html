@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>MIRA – Comunicador por parpadeo voluntario</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header>
+  <h1>MIRA</h1>
+  <span class="sub">Comunicador por parpadeo voluntario · prototipo</span>
+  <span id="chipCam" class="chip">Cámara apagada</span>
+  <span id="chipCal" class="chip">Sin calibrar</span>
+  <span id="chipScan" class="chip">Barrido detenido</span>
+</header>
+
+<main>
+  <section id="comm">
+    <div id="message"></div>
+    <div id="banner"></div>
+    <div id="grid"></div>
+    <div id="history"></div>
+  </section>
+
+  <aside>
+    <div class="card">
+      <div id="camwrap">
+        <video id="video" playsinline muted></video>
+        <div id="camoff">El video se procesa en este computador.<br>No se graba ni se envía a ningún servidor.</div>
+      </div>
+      <canvas id="chart" width="672" height="180"></canvas>
+      <div id="stateRow">
+        <span id="stateName">SIN SEÑAL</span>
+        <div id="holdBar"><div id="holdFill"></div></div>
+        <span id="earVal" style="color:var(--muted)">EAR –</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button data-tab="tInicio" class="on">Inicio</button>
+        <button data-tab="tPruebas">Pruebas</button>
+        <button data-tab="tAjustes">Ajustes</button>
+        <button data-tab="tRegistro">Registro</button>
+      </div>
+
+      <div id="tInicio" class="tab on">
+        <p class="note">Pasos para el cuidador: 1) activar la cámara, 2) calibrar, 3) el barrido inicia solo. Para elegir una opción, la persona mantiene los ojos cerrados hasta oír el tono.</p>
+        <div class="btns">
+          <button id="btnCam" class="primary">1. Activar cámara</button>
+          <button id="btnCal" disabled>2. Calibrar</button>
+          <button id="btnScan" disabled>Iniciar barrido</button>
+          <button id="btnSim">Probar sin cámara (barra espaciadora)</button>
+        </div>
+        <p id="calInfo" class="note" style="margin-top:8px"></p>
+      </div>
+
+      <div id="tPruebas" class="tab">
+        <label for="pid">Código del participante (anónimo, p. ej. P01)</label>
+        <input type="text" id="pid" value="P01" maxlength="12">
+
+        <div class="test">
+          <h3>A. Reposo (falsos positivos)</h3>
+          <p>La persona mira la pantalla sin intención de seleccionar. Cada selección detectada cuenta como falso positivo.</p>
+          <div class="inline">
+            <select id="restMin"><option value="1">1 minuto</option><option value="3" selected>3 minutos</option><option value="5">5 minutos</option></select>
+            <button id="btnRest">Iniciar</button>
+          </div>
+        </div>
+
+        <div class="test">
+          <h3>B. Cierres pautados (sensibilidad)</h3>
+          <p>Al oír el tono grave, la persona cierra los ojos hasta oír el tono agudo de confirmación.</p>
+          <div class="inline">
+            <select id="cueN"><option value="10">10 cierres</option><option value="20" selected>20 cierres</option><option value="30">30 cierres</option></select>
+            <button id="btnCue">Iniciar</button>
+          </div>
+        </div>
+
+        <div class="test">
+          <h3>C. Mensaje cotidiano (tiempo y velocidad)</h3>
+          <p>Mide cuánto tarda en comunicarse un mensaje. Con MIRA termina al usar la frase rápida o al elegir «Hablar». Con el tablero de cartón funciona como cronómetro.</p>
+          <select id="target"></select>
+          <input type="text" id="targetCustom" placeholder="Mensaje personalizado, sin tildes" style="margin-top:6px; display:none">
+          <div class="inline" style="margin-top:6px">
+            <select id="method"><option value="mira">Con MIRA</option><option value="tablero">Tablero de cartón</option></select>
+            <button id="btnWrite">Iniciar</button>
+          </div>
+        </div>
+
+        <div class="test">
+          <div class="btns">
+            <button id="btnCancel" disabled>Cancelar prueba</button>
+            <button id="btnCsv">Exportar resultados (CSV)</button>
+            <button id="btnCsvEv">Exportar eventos (CSV)</button>
+            <button id="btnClear">Borrar resultados</button>
+          </div>
+          <div style="overflow-x:auto; margin-top:8px"><table id="resTable"></table></div>
+        </div>
+      </div>
+
+      <div id="tAjustes" class="tab">
+        <label for="hold">Tiempo de cierre para seleccionar: <b id="holdV"></b> ms</label>
+        <input type="range" id="hold" min="300" max="1500" step="50" value="500">
+        <label for="interval">Velocidad del barrido: <b id="intervalV"></b> ms por paso</label>
+        <input type="range" id="interval" min="500" max="2500" step="100" value="1000">
+        <label for="layout">Distribución del teclado</label>
+        <select id="layout"><option value="frecuencia">Por frecuencia de uso (E A O S R N…)</option><option value="alfabetico">Alfabético (A B C D E F…)</option></select>
+        <label for="phraseSel">Frases rápidas: elija la que desea cambiar</label>
+        <select id="phraseSel"></select>
+        <input type="text" id="phraseNew" maxlength="40" placeholder="Nuevo mensaje" style="margin-top:6px">
+        <div class="btns" style="margin-top:6px">
+          <button id="btnPhrase">Cambiar frase</button>
+          <button id="btnPhraseReset">Restaurar originales</button>
+        </div>
+        <p id="phraseInfo" class="note"></p>
+        <label for="calOpen">Calibración</label>
+        <select id="calOpen"><option value="15">Estándar: 15 s abiertos + 3 s cerrados</option><option value="6">Rápida: 6 s abiertos + 3 s cerrados</option></select>
+        <label class="check"><input type="checkbox" id="sound" checked> Tonos de confirmación</label>
+        <label class="check"><input type="checkbox" id="sim"> Modo simulado: la barra espaciadora hace de párpado</label>
+        <p class="note">El modo simulado sirve para ensayar la interfaz sin cámara. Los resultados obtenidos así quedan marcados como «simulado» y no deben reportarse como detección real.</p>
+      </div>
+
+      <div id="tRegistro" class="tab">
+        <div class="stats">
+          <div class="stat"><b id="stSpont">0</b><span>cierres espontáneos descartados</span></div>
+          <div class="stat"><b id="stVol">0</b><span>cierres voluntarios detectados</span></div>
+          <div class="stat"><b id="stSpontMs">–</b><span>duración media espontáneos (ms)</span></div>
+          <div class="stat"><b id="stTime">0:00</b><span>tiempo de sesión</span></div>
+        </div>
+        <div id="log"></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script src="js/util.js"></script>
+<script src="js/config.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/registro.js"></script>
+<script src="js/teclado.js"></script>
+<script src="js/detector.js"></script>
+<script src="js/pruebas.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
