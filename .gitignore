@@ -1,0 +1,12 @@
+# Configuración local de herramientas
+.claude/
+.vscode/
+
+# Resultados exportados de las pruebas (pueden contener códigos de participantes)
+mira_resultados*.csv
+mira_eventos*.csv
+
+# Paquetes y temporales
+*.zip
+Thumbs.db
+.DS_Store
